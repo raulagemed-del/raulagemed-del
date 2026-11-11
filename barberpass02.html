@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>BarberPass 💈</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Para app full-screen -->
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+<!-- Link para manifest -->
+<link rel="manifest" href="manifest.json">
+
+<style>
+body { font-family: Arial, sans-serif; background:#f4f4f4; margin:0; padding:20px; }
+h1 { color:#d32f2f; margin-bottom:20px; text-align:center; font-weight:bold; }
+.card { background:#fff; border-radius:12px; padding:15px; margin:10px 0; box-shadow:0 4px 8px rgba(0,0,0,0.15); }
+button { cursor:pointer; font-weight:bold; transition:0.3s; border:none; }
+button:hover { transform: scale(1.05); box-shadow:0 10px 20px rgba(0,0,0,0.35); }
+input, select { width:100%; padding:12px; margin:5px 0; border-radius:8px; border:1px solid #ccc; font-size:15px; }
+#relatorio, #relatorioAdmin { margin-top:15px; background:#fff; padding:10px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.2); white-space:pre-wrap; max-height:400px; overflow:auto;}
+@keyframes fadeIn { from {opacity:0; transform:translateY(25px);} to {opacity:1; transform:translateY(0);} }
+
+/* BOTÕES CLIENTE MELHORADOS */
+#telaCliente button {
+    width: 90%;
+    padding: 18px;
+    margin: 10px 0;
+    font-size: 18px;
+    font-weight: bold;
+    border-radius: 15px;
+    border: none;
+    color: white;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+    transition: 0.3s;
+}
+#agendarBtn { background: linear-gradient(90deg, #388e3c, #66bb6a); }
+#verBtn { background: linear-gradient(90deg, #fbc02d, #ffeb3b); color:black; }
+#cancelarBtn { background: linear-gradient(90deg, #d32f2f, #e57373); }
+
+#telaCliente button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.35);
+}
+#telaCliente button:active {
+    transform: scale(0.97);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+}
+</style>
+</head>
+<body>
+
+<!-- TELA INICIAL -->
+<div class="card" id="telaInicial" style="text-align:center; animation:fadeIn 1s; margin-top:50px;">
+  <h1>💈 BarberPass 💈</h1>
+  
+  <button onclick="entrarCliente()" style="
+    background: linear-gradient(90deg, #1976d2, #42a5f5);
+    color:white; 
+    font-size:22px; 
+    padding:20px; 
+    border-radius:15px; 
+    margin:15px 0; 
+    width:85%; 
+    box-shadow:0 8px 16px rgba(0,0,0,0.3);">Entrar como Cliente</button>
+  
+  <button onclick="entrarAdmin()" style="
+    background: linear-gradient(90deg, #388e3c, #66bb6a);
+    color:white; 
+    font-size:22px; 
+    padding:20px; 
+    border-radius:15px; 
+    margin:15px 0; 
+    width:85%; 
+    box-shadow:0 8px 16px rgba(0,0,0,0.3);">Entrar como Administrador</button>
+</div>
+
+<!-- TELA CLIENTE -->
+<div id="telaCliente" style="display:none;">
+  <div class="card">
+    <h3>Novo Agendamento</h3>
+    <input type="text" id="nome" placeholder="Nome do cliente">
+    <input type="text" id="telefone" placeholder="Telefone">
+    <select id="servico">
+      <option value="">Selecione o serviço</option>
+      <option value="Corte e Barba">Corte e Barba - R$100</option>
+      <option value="Corte">Corte - R$50</option>
+      <option value="Barba">Barba - R$50</option>
+      <option value="Selagem">Selagem - R$120</option>
+      <option value="Sobrancelha">Sobrancelha - R$10</option>
+      <option value="Tintura Barba">Tintura Barba - R$35</option>
+    </select>
+    <input type="date" id="dia">
+    <select id="hora">
+      <option value="">Selecione a hora</option>
+      <option>08:00</option><option>09:00</option><option>10:00</option>
+      <option>11:00</option><option>12:00</option><option>13:00</option>
+      <option>14:00</option><option>15:00</option><option>16:00</option>
+      <option>17:00</option><option>18:00</option><option>19:00</option>
+      <option>20:00</option>
+    </select>
+    <input type="number" id="semanas" placeholder="Agendamento recorrente (semanas)">
+    <button id="agendarBtn" onclick="adicionarAgendamento()">Agendar</button>
+    <button id="verBtn" onclick="verAgendamentos()">Ver Meus Agendamentos</button>
+    <button id="cancelarBtn" onclick="cancelarAgendamento()">Cancelar Agendamento</button>
+  </div>
+  <pre id="relatorio"></pre>
+  <button onclick="voltarInicio()">Voltar</button>
+</div>
+
+<!-- TELA ADMINISTRADOR -->
+<div id="telaAdmin" style="display:none;">
+  <div class="card">
+    <h3>Administrador</h3>
+    <button onclick="gerarRelatorio()">Gerar Relatório Completo</button>
+    <button onclick="verAgendamentos()">Ver Todos Agendamentos</button>
+    <button onclick="voltarInicio()">Voltar</button>
+  </div>
+  <pre id="relatorioAdmin"></pre>
+</div>
+
+<script>
+const servicos = {
+  "Corte e Barba":100, "Corte":50, "Barba":50,
+  "Selagem":120, "Sobrancelha":10, "Tintura Barba":35
+};
+
+let agendamentos = JSON.parse(localStorage.getItem("agendamentos")) || [];
+let clientes = JSON.parse(localStorage.getItem("clientes")) || [];
+
+function salvarDados() {
+  localStorage.setItem("agendamentos", JSON.stringify(agendamentos));
+  localStorage.setItem("clientes", JSON.stringify(clientes));
+}
+
+// TELA INICIAL
+function entrarCliente(){
+  document.getElementById("telaInicial").style.display="none";
+  document.getElementById("telaCliente").style.display="block";
+}
+function entrarAdmin(){
+  let usuario = prompt("Digite o usuário:");
+  let senha = prompt("Digite a senha:");
+  if(usuario==="Raul" && senha==="123"){
+    document.getElementById("telaInicial").style.display="none";
+    document.getElementById("telaAdmin").style.display="block";
+  } else alert("Usuário ou senha incorretos!");
+}
+function voltarInicio(){
+  document.getElementById("telaInicial").style.display="block";
+  document.getElementById("telaCliente").style.display="none";
+  document.getElementById("telaAdmin").style.display="none";
+}
+
+// AGENDAMENTOS
+function adicionarAgendamento(){
+  let nome = document.getElementById("nome").value;
+  let telefone = document.getElementById("telefone").value;
+  let servico = document.getElementById("servico").value;
+  let dia = document.getElementById("dia").value;
+  let hora = document.getElementById("hora").value;
+  let semanas = parseInt(document.getElementById("semanas").value)||1;
+
+  if(!nome || !telefone || !servico || !dia || !hora){ alert("Preencha todos os campos!"); return; }
+  if(!clientes.find(c=>c.telefone===telefone)) clientes.push({nome, telefone});
+
+  for(let i=0;i<semanas;i++){
+    let dataAgendada = dia; 
+    agendamentos.push({cliente:nome, telefone, servico, dia:`Semana+${i} (${dataAgendada})`, hora, valor:servicos[servico]});
+  }
+
+  salvarDados();
+  alert("Agendamento realizado!");
+  document.getElementById("nome").value="";
+  document.getElementById("telefone").value="";
+  document.getElementById("servico").value="";
+  document.getElementById("dia").value="";
+  document.getElementById("hora").value="";
+  document.getElementById("semanas").value="";
+}
+
+function verAgendamentos(){
+  let texto = agendamentos.map(a=>`${a.cliente} | ${a.servico} | ${a.dia} | ${a.hora} | R$${a.valor}`).join("\n");
+  if(document.getElementById("telaAdmin").style.display=="block"){
+    document.getElementById("relatorioAdmin").textContent = texto || "Nenhum agendamento";
+  } else {
+    document.getElementById("relatorio").textContent = texto || "Nenhum agendamento";
+  }
+}
+
+function cancelarAgendamento(){
+  let lista = agendamentos.map((a,i)=>`${i+1} - ${a.cliente} (${a.dia} ${a.hora})`).join("\n");
+  let escolha = parseInt(prompt("Escolha o agendamento para cancelar:\n"+lista))-1;
+  if(escolha>=0 && escolha<agendamentos.length){
+    alert(`Agendamento de ${agendamentos[escolha].cliente} cancelado`);
+    agendamentos.splice(escolha,1);
+    salvarDados();
+    verAgendamentos();
+  } else alert("Opção inválida");
+}
+
+function gerarRelatorio(){
+  let textoCliente = "📄 RELATÓRIO CLIENTE:\n";
+  agendamentos.forEach(a=>{ textoCliente += `${a.cliente} | ${a.servico} | ${a.dia} | ${a.hora} | R$${a.valor}\n`; });
+
+  let total = agendamentos.reduce((s,a)=>s+a.valor,0);
+  let porServico = {}; let porCliente = {};
+  agendamentos.forEach(a=>{ porServico[a.servico]=(porServico[a.servico]||0)+a.valor; porCliente[a.cliente]=(porCliente[a.cliente]||0)+a.valor; });
+
+  let textoAdmin = "\n📊 RELATÓRIO ADMINISTRADOR:\n";
+  textoAdmin += `Faturamento total: R$${total}\nServiço: ${JSON.stringify(porServico)}\nCliente: ${JSON.stringify(porCliente)}\nTotal agendamentos: ${agendamentos.length}\nClientes únicos: ${clientes.length}\n`;
+
+  document.getElementById("relatorioAdmin").textContent = textoCliente + textoAdmin;
+}
+</script>
+</body>
+</html>
