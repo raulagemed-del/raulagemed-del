@@ -17,7 +17,3 @@ Desenvolvedor Full-Stack apaixonado por criar aplicações web modernas e eficie
 * **BarberPass / FlowBarb**: Plataforma full-stack de agendamento e gestão para barbearias, integrada com sistemas de pagamento e automação de mensagens.
 
 ---
-
-### 📊 Estatísticas do GitHub
-
-![Estatísticas do GitHub](https://github-readme-stats.vercel.app/api?username=raulagemed-del&show_icons=true&theme=radical)
